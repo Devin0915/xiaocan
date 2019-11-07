@@ -1,0 +1,15 @@
+a,
+a:focus,
+a:hover {
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+.ivu-table-filter-list-item{
+  max-height: 300px;
+  overflow: auto;
+}
+th .ivu-table-cell {
+  color: black !important;
+}

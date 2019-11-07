@@ -1,0 +1,69 @@
+kind: pipeline
+name: default
+
+steps:
+  - name: build-dev
+    image: plugins/docker
+    settings:
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+      repo: harbor.patozon.net/library/web/xc2web
+      insecure: true
+      tag: ${DRONE_TAG=latest}
+      registry: harbor.patozon.net
+      dockerfile: ./Dockerfile
+    when:
+      ref:
+        - refs/tags/*
+
+  - name: k8s-dev
+    image: vallard/drone-kube
+    environment:
+      DRONE_TAG: ${DRONE_TAG=latest}
+    settings:
+      template: deployment.yaml
+      namespace: xc-server
+      server:
+        from_secret: test_kube_server
+      token:
+        from_secret: test_kube_token
+      ca:
+        from_secret: test_kube_ca
+    when:
+      ref:
+        - refs/tags/test-*
+
+  - name: k8s-prod
+    image: vallard/drone-kube
+    settings:
+      template: deployment.yaml
+      namespace: xc-server
+      server:
+        from_secret: prod_kube_server
+      token:
+        from_secret: prod_kube_token
+      ca:
+        from_secret: prod_kube_ca
+    when:
+      ref:
+        - refs/tags/prod-*
+
+  - name: dingtalk
+    image: lddsb/drone-dingtalk-message
+    settings:
+      token:
+        from_secret: dingtalk_token
+      type: markdown
+      message_color: true
+      message_pic: true
+      sha_link: true
+    when:
+      status:
+        - success
+        - failure
+
+trigger:
+  ref:
+    - refs/tags/*

@@ -1,0 +1,44 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: xc2web
+  namespace: xc-server
+  labels:
+    app: xc2web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: xc2web
+  template:
+    metadata:
+      labels:
+        app: xc2web
+    spec:
+      containers:
+        - name: xc2web
+          imagePullPolicy: Always
+          image: harbor.patozon.net/library/web/xc2web:{{ build.tag }}
+          ports:
+            - containerPort: 80
+          volumeMounts:
+              - mountPath: /etc/nginx/conf.d/default.conf
+                name: nginx
+                subPath: default.conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: xc-server
+  name: xc2web
+  labels:
+    app: xc2web
+spec:
+  ports:
+    - port: 80
+      name: http
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: xc2web
+
